@@ -1,0 +1,64 @@
+---
+title: "p8131_stl2137_hw5"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+```
+
+# Problem 1
+Explanatory variables that are thought to a􏰁ect this included the female crab's color (C), spine condition (S), carapace width (W) and weight (Wt). The response outcome for each female crab is her number of satellites (Sa). There are 173 females in this study. 
+
+```{r}
+### Load in crab data
+
+crab_dat <- read.table("/Users/SabrinaLin/Documents/Spring_20_Biostat_Methods_2/Homework/p8131_stl2137_hw5/HW5-crab.txt", header = TRUE) %>% 
+  janitor::clean_names()
+```
+
+## Part A
+(a) Fit a Poisson model (M1) with log link with W as the single predictor. Check the goodness of 􏰀t and interpret your model.
+
+```{r}
+### M1 model
+crab_m1_mod <- glm(sa ~ w, family = poisson(link = "log"), data = crab_dat)
+summary(crab_m1_mod)
+
+### Goodness of fit
+
+```
+
+(b) Fit a model (M2) with W and Wt as predictors. Compare it with the model in (a). Interpret your results.
+
+```{r}
+### M2 model
+crab_m2_mod <- glm(sa ~ w + wt, family = poisson(link = "log"), data = crab_dat)
+summary(crab_m2_mod)
+
+### M2 vs M1
+test.stat = crab_m1_mod$deviance - crab_m2_mod$deviance
+df = 171 - 170
+pval = 1 - pchisq(test.stat, df = df)
+pval
+```
+
+With a p-value of `r pval`, we reject the null hypothesis and conclude that M2, the bigger model, is the model we should continue with. 
+
+(c) Check over dispersion in M2. Interpret the model after adjusting for over dispersion.
+```{r}
+
+```
+
+
+# Problem 2
+ The dataset (parasite.txt) includes the variables Intensity (i.e., the number of parasites), Area (a categorical variable), Year (to be treated as cat- egorical), and Length of the 􏰀sh.
+```{r}
+### Load parasite data
+
+parasite_dat <- read.table("/Users/SabrinaLin/Documents/Spring_20_Biostat_Methods_2/Homework/p8131_stl2137_hw5/HW5-parasite.txt", header = TRUE) %>% 
+  janitor::clean_names()
+```
+
