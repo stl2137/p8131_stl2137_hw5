@@ -49,7 +49,19 @@ With a p-value of `r pval`, we reject the null hypothesis and conclude that M2, 
 
 (c) Check over dispersion in M2. Interpret the model after adjusting for over dispersion.
 ```{r}
+m2_dispersion_mod <- glm(sa ~ w + wt, family = quasi(link = "log", variance = mu), data = crab_dat)
+summary(m2_dispersion_mod)
 
+## Checking that traditional way also works
+res.m2.disp <- residuals(crab_m2_mod, type = 'pearson', data = crab_dat)
+G1.m2 <- sum(res.m2.disp^2)
+pval = 1 - pchisq(G1.m2, df = 170)
+phi = G1.m2/170
+phi
+
+summary(crab_m2_mod , dispersion = phi)
+
+### Why do these slightly differ but also technically work
 ```
 
 
