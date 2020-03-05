@@ -10,8 +10,9 @@ library(tidyverse)
 library(pscl)
 ```
 
+## Do we do intercepts?
+
 # Problem 1
-Explanatory variables that are thought to a􏰁ect this included the female crab's color (C), spine condition (S), carapace width (W) and weight (Wt). The response outcome for each female crab is her number of satellites (Sa). There are 173 females in this study. 
 
 ```{r}
 ### Load in crab data
@@ -21,7 +22,6 @@ crab_dat <- read.table("/Users/SabrinaLin/Documents/Spring_20_Biostat_Methods_2/
 ```
 
 ## Part A
-(a) Fit a Poisson model (M1) with log link with W as the single predictor. Check the goodness of 􏰀t and interpret your model.
 
 ```{r}
 ### M1 model
@@ -29,12 +29,14 @@ crab_m1_mod <- glm(sa ~ w, family = poisson(link = "log"), data = crab_dat)
 summary(crab_m1_mod)
 
 ### Goodness of fit
-crab_m1_pval <- pchisq(crab_m1_mod$deviance, df = crab_m1_mod$df.residual, lower.tail = FALSE)
+crab_m1_pval <- pchisq(crab_m1_mod$deviance, df = crab_m1_mod$df.residual)
 ```
 
-With a p-value of `r crab_m1_pval`, we reject the null hypothesis and conclude that the model does not fit the data.  
+* 0.16405 is the log rate ratio of number of satellites with every 1 unit increase in carapace width. 
 
-(b) Fit a model (M2) with W and Wt as predictors. Compare it with the model in (a). Interpret your results.
+* With a p-value of `r crab_m1_pval`, we reject the null hypothesis and conclude that the model does not fit the data.  
+
+## Part B
 
 ```{r}
 ### M2 model
@@ -48,28 +50,48 @@ pval = 1 - pchisq(test.stat, df = df)
 pval
 ```
 
-With a p-value of `r pval`, we reject the null hypothesis and conclude that M2, the bigger model, is the model we should continue with. 
+* With a p-value of 0.32640 compared to $\alpha = 0.05$, carapace width is an insignifcant variable. 0.04590 is the log rate ratio of number of satellites with every 1 unit increase in carapace width, keeping weight constant. 
 
-(c) Check over dispersion in M2. Interpret the model after adjusting for over dispersion.
+* 0.44744 is the log rate ratio of the number of satellites with every 1 unit increase in weight, keeping carapace width constant. 
+
+### Goodness of Fit: Which model is better?
+
+* With a p-value of `r pval`, we reject the null hypothesis and conclude that M2, the bigger model, is the model we should continue with. 
+
+## Part C
+
 ```{r}
 m2_dispersion_mod <- glm(sa ~ w + wt, family = quasi(link = "log", variance = mu), data = crab_dat)
 summary(m2_dispersion_mod)
-
-## Half normal plot
 
 ## Checking that traditional way also works
 res.m2.disp <- residuals(crab_m2_mod, type = 'pearson', data = crab_dat)
 G1.m2 <- sum(res.m2.disp^2)
 pval = 1 - pchisq(G1.m2, df = 170)
 phi = G1.m2/170
-phi
+#phi
 
-summary(crab_m2_mod , dispersion = phi)
+#summary(crab_m2_mod , dispersion = phi)
 
 ```
 
+* With a p-value of 0.581 compared to $\alpha = 0.05$, the carapace width variable is insignificant. 0.04590 is the log rate ratio of number of satellites with every 1 unit increase in carapace width, holding weight constant. 
+
+* With a p-value of 0.114 compared to $\alpha = 0.05$, the weight variable is insignificant. 0.44744 is the log rato ratio of number of satellites with every 1 unit increase in weight, holding carapace width constant. 
+
+```{r}
+### Half normal plot
+tilde.phi = crab_m2_mod$deviance/crab_m2_mod$df.residual
+res = residuals(crab_m2_mod, type = 'pearson')
+plot(qnorm((173+1:173+0.5)/(2*173+1.125)),sort(abs(res)),xlab='Expected Half-Normal Order Stats',ylab='Ordered Abs Pearson Residuals')
+abline(a=0,b=1)
+abline(a=0,b=sqrt(phi),lty=2)
+```
+
+As demonstrated by the plot, the data does not follow a $\phi = 1$, showing that there is overdispersion. 
+
 # Problem 2
-The dataset (parasite.txt) includes the variables Intensity (i.e., the number of parasites), Area (a categorical variable), Year (to be treated as cat- egorical), and Length of the 􏰀sh.
+
 ```{r}
 ### Load parasite data
 
@@ -81,20 +103,34 @@ parasite_dat <- read.table("/Users/SabrinaLin/Documents/Spring_20_Biostat_Method
   )
 ```
 
-(a) Fit a Poisson model with log link to the data with area, year, and length as predictors. Interpret each model parameter.
+## Part A
+
 ```{r}
 parasite_mod <- glm(intensity ~ area + year + length, family = poisson(link = "log"), data = parasite_dat)
 
 summary(parasite_mod)
 ```
 
-(b) Test for goodness of 􏰀t of the model in (a) and state conclusions.
+* `r parasite_mod$coefficients[2]` is the log rate ratio of the number of parasites when going from area 2 to area 1, holding all other variables constant. 
+
+* `r parasite_mod$coefficients[3]` is the log rate ratio of the number of parasites when going from area 3 to area 1, holding all other variables constant. 
+
+* `r parasite_mod$coefficients[4]` is the log rate ratio of the number of parasites when going from area 4 to area 1, holding all other variables constant. 
+
+* `r parasite_mod$coefficients[5]` is the log rate ratio of the number of parasites when going from the year 2000 to the year 1999, holding all other variables constant.
+
+* `r parasite_mod$coefficients[6]` is the log rate ratio of the number of parasites when going from the year 2001 to the year 1999, holding all other variables constant.
+
+* `r parasite_mod$coefficients[7]` is the log rate ratio of the number of parasites for every 1 unit increase in length, holding all other variables constant.
+
+## Part B
+
 ```{r}
-parasite_pval <- pchisq(parasite_mod$deviance, df = parasite_mod$df.residual, lower.tail = FALSE)
+parasite_pval <- pchisq(parasite_mod$deviance, df = parasite_mod$df.residual)
 ```
 With a p-value of `r parasite_pval`, we reject the null hypothesis and conclude that the model does not fit the data. 
 
-(c) Without knowing which 􏰀sh are susceptible, this could be regarded as a zero-in􏰂ated model. Building on the model in (a) (using the same predictors), 􏰀t an appropriate model to the data that can account for extra zeros. Provide an interpretation for each model parameter in terms of the problem.
+## Part C
 
 ```{r}
 ### what should the given be? area? length? 
@@ -102,4 +138,20 @@ With a p-value of `r parasite_pval`, we reject the null hypothesis and conclude 
 parasite_zero_mod <- zeroinfl(intensity ~ year + length | area, data = parasite_dat)
 summary(parasite_zero_mod)
 ```
+
+### Count Model Coefficient Interpretations
+
+* `r parasite_zero_mod$coefficients$count[2]` is the log rate ratio of the number of parasites when going from the year 2000 to the year 1999 given that the fish strain is susceptible to parasites, holding all other variables constant. 
+
+* `r parasite_zero_mod$coefficients$count[3]` is the log rate ratio of the number of parasites when going from the year 2001 to the year 1999 given that the fish strain is susceptible to parasites, holding all other variables constant. 
+
+* `r parasite_zero_mod$coefficients$count[4]` is the log rate ratio of the number of parasites for every 1 unit increase in length given that the fish strain is susceptible to parasites, holding all other variables constant.
+
+### Zero-inflation Model Coefficient Interpretations
+
+* `r parasite_zero_mod$coefficients$zero[2]` is the log odds ratio of not being the fish strain susceptible to parasites when comparing area 2 to area 1. 
+
+* `r parasite_zero_mod$coefficients$zero[3]` is the log odds ratio of not being the fish strain susceptible to parasites when comparing area 3 to area 1. 
+
+* `r parasite_zero_mod$coefficients$zero[4]` is the log odds ratio of not being the fish strain susceptible to parasites when comparing area 4 to area 1. 
 
