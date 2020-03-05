@@ -55,6 +55,8 @@ With a p-value of `r pval`, we reject the null hypothesis and conclude that M2, 
 m2_dispersion_mod <- glm(sa ~ w + wt, family = quasi(link = "log", variance = mu), data = crab_dat)
 summary(m2_dispersion_mod)
 
+## Half normal plot
+
 ## Checking that traditional way also works
 res.m2.disp <- residuals(crab_m2_mod, type = 'pearson', data = crab_dat)
 G1.m2 <- sum(res.m2.disp^2)
@@ -64,11 +66,10 @@ phi
 
 summary(crab_m2_mod , dispersion = phi)
 
-### Why do these slightly differ but also technically work
 ```
 
 # Problem 2
- The dataset (parasite.txt) includes the variables Intensity (i.e., the number of parasites), Area (a categorical variable), Year (to be treated as cat- egorical), and Length of the 􏰀sh.
+The dataset (parasite.txt) includes the variables Intensity (i.e., the number of parasites), Area (a categorical variable), Year (to be treated as cat- egorical), and Length of the 􏰀sh.
 ```{r}
 ### Load parasite data
 
@@ -98,11 +99,7 @@ With a p-value of `r parasite_pval`, we reject the null hypothesis and conclude 
 ```{r}
 ### what should the given be? area? length? 
 
-parasite_zero_mod <- zeroinfl(intensity ~ area + year + length | area, data = parasite_dat)
+parasite_zero_mod <- zeroinfl(intensity ~ year + length | area, data = parasite_dat)
 summary(parasite_zero_mod)
-
-parasite_mod <- glm(intensity ~ area + year + length, family = poisson(link = "log"), data = parasite_dat)
-
-
 ```
 
